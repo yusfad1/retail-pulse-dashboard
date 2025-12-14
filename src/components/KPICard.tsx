@@ -26,7 +26,7 @@ const KPICard = ({ title, value, delta, deltaLabel, trend, icon, isUnusual = fal
   const trendColor = trend === "up" ? "text-primary" : "text-destructive";
 
   return (
-    <div 
+    <div
       className={cn(
         "flex flex-col gap-1 rounded-2xl p-5 border bg-card hover:border-primary/50 transition-colors group cursor-default",
         isUnusual ? "border-primary/60 ring-1 ring-primary/20" : "border-border"
@@ -36,7 +36,7 @@ const KPICard = ({ title, value, delta, deltaLabel, trend, icon, isUnusual = fal
         <div className="flex items-center gap-2">
           <p className="text-muted-foreground text-sm font-medium">{title}</p>
           {isUnusual && (
-            <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+            <span className="text-[10px] font-bold text-destructive bg-destructive/10 px-1.5 py-0.5 rounded">
               UNUSUAL
             </span>
           )}
