@@ -1,23 +1,16 @@
 import { Sparkles, RefreshCw, ThumbsUp, ThumbsDown } from "lucide-react";
 
-// Mock insight data - replace with backend/AI generated data later
-const insightData = {
-  performanceHighlight: {
-    text: "Store 042 outperformed regional benchmarks by",
-    highlight: "8%",
-    suffix: "this week. This surge was primarily driven by the 'Summer Essentials' campaign, which saw a 15% uplift in conversion.",
-  },
-  riskAlert: "Foot traffic dipped slightly on Tuesday due to weather conditions, however, high Average Transaction Value (ATV) compensated for the loss in volume.",
-  recommendation: "Consider extending the accessory bundle promotion into next week to capitalize on the current margin growth trend.",
-  isAnalyzing: true,
-  analyzingText: "Analyzing inventory depth...",
-};
-
 interface WeeklyAIInsightPanelProps {
-  onGenerateNewInsight?: () => void;
+  aiSummary: string | null;
+  isLoading: boolean;
+  onGenerateNewInsight: () => void;
 }
 
-const WeeklyAIInsightPanel = ({ onGenerateNewInsight }: WeeklyAIInsightPanelProps) => {
+const WeeklyAIInsightPanel = ({ 
+  aiSummary, 
+  isLoading, 
+  onGenerateNewInsight 
+}: WeeklyAIInsightPanelProps) => {
   return (
     <div className="flex flex-col h-full bg-card rounded-2xl border border-border p-6 relative overflow-hidden group">
       {/* Subtle glow effect */}
@@ -33,35 +26,27 @@ const WeeklyAIInsightPanel = ({ onGenerateNewInsight }: WeeklyAIInsightPanelProp
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto pr-2 mb-6 relative z-10 custom-scrollbar">
-        <div className="space-y-4">
-          <p className="text-gray-200 text-sm leading-relaxed font-body">
-            <strong className="text-foreground">Performance Highlight:</strong>{" "}
-            {insightData.performanceHighlight.text}{" "}
-            <span className="text-primary font-bold">{insightData.performanceHighlight.highlight}</span>{" "}
-            {insightData.performanceHighlight.suffix}
-          </p>
-          
-          <p className="text-gray-200 text-sm leading-relaxed font-body">
-            <strong className="text-foreground">Risk Alert:</strong> {insightData.riskAlert}
-          </p>
-          
-          <p className="text-gray-200 text-sm leading-relaxed font-body">
-            <strong className="text-foreground">Recommendation:</strong> {insightData.recommendation}
-          </p>
-
-          {/* Analyzing state */}
-          {insightData.isAnalyzing && (
-            <div className="space-y-3 pt-4 opacity-50">
-              <div className="flex gap-2 items-center mb-2">
-                <div className="size-2 bg-primary rounded-full animate-pulse" />
-                <span className="text-xs text-primary font-medium">{insightData.analyzingText}</span>
-              </div>
-              <div className="h-2 bg-muted rounded-full w-3/4 animate-pulse" />
-              <div className="h-2 bg-muted rounded-full w-full animate-pulse" style={{ animationDelay: "75ms" }} />
-              <div className="h-2 bg-muted rounded-full w-5/6 animate-pulse" style={{ animationDelay: "150ms" }} />
+        {isLoading ? (
+          <div className="space-y-3">
+            <div className="flex gap-2 items-center mb-2">
+              <div className="size-2 bg-primary rounded-full animate-pulse" />
+              <span className="text-xs text-primary font-medium">Generating insight...</span>
             </div>
-          )}
-        </div>
+            <div className="h-2 bg-muted rounded-full w-3/4 animate-pulse" />
+            <div className="h-2 bg-muted rounded-full w-full animate-pulse" style={{ animationDelay: "75ms" }} />
+            <div className="h-2 bg-muted rounded-full w-5/6 animate-pulse" style={{ animationDelay: "150ms" }} />
+            <div className="h-2 bg-muted rounded-full w-2/3 animate-pulse" style={{ animationDelay: "225ms" }} />
+            <div className="h-2 bg-muted rounded-full w-4/5 animate-pulse" style={{ animationDelay: "300ms" }} />
+          </div>
+        ) : aiSummary ? (
+          <div className="text-gray-200 text-sm leading-relaxed font-body whitespace-pre-line">
+            {aiSummary}
+          </div>
+        ) : (
+          <p className="text-muted-foreground text-sm">
+            No insight available. Click "Generate New Insight" to get started.
+          </p>
+        )}
       </div>
 
       {/* Footer */}
@@ -80,10 +65,11 @@ const WeeklyAIInsightPanel = ({ onGenerateNewInsight }: WeeklyAIInsightPanelProp
         
         <button 
           onClick={onGenerateNewInsight}
-          className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground font-bold py-3.5 px-4 rounded-full hover:brightness-110 hover:shadow-[0_0_15px_hsl(209,100%,60%,0.3)] transition-all active:scale-[0.98]"
+          disabled={isLoading}
+          className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground font-bold py-3.5 px-4 rounded-full hover:brightness-110 hover:shadow-[0_0_15px_hsl(209,100%,60%,0.3)] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100"
         >
-          <RefreshCw className="size-5" />
-          Generate New Insight
+          <RefreshCw className={`size-5 ${isLoading ? "animate-spin" : ""}`} />
+          {isLoading ? "Generating..." : "Generate New Insight"}
         </button>
       </div>
     </div>

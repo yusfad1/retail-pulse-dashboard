@@ -1,14 +1,30 @@
 import { ChevronDown, Settings, Bell, Store, Calendar } from "lucide-react";
 
 interface TopBarProps {
-  storeName?: string;
-  weekLabel?: string;
+  stores: string[];
+  years: number[];
+  weeks: number[];
+  selectedStore: string;
+  selectedYear: number;
+  selectedWeek: number;
+  onStoreChange: (store: string) => void;
+  onYearChange: (year: number) => void;
+  onWeekChange: (week: number) => void;
+  isLoading?: boolean;
   userAvatarUrl?: string;
 }
 
 const TopBar = ({ 
-  storeName = "Store 042", 
-  weekLabel = "Wk 34, 2023",
+  stores,
+  years,
+  weeks,
+  selectedStore,
+  selectedYear,
+  selectedWeek,
+  onStoreChange,
+  onYearChange,
+  onWeekChange,
+  isLoading = false,
   userAvatarUrl = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
 }: TopBarProps) => {
   return (
@@ -37,20 +53,58 @@ const TopBar = ({
 
       {/* Center Selectors */}
       <div className="flex items-center gap-3 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-        <button className="flex items-center gap-2 bg-card border border-border px-4 py-2 rounded-full text-sm font-medium hover:bg-surface-hover transition-colors text-foreground min-w-[160px] justify-between group">
-          <span className="flex items-center gap-2">
-            <Store className="size-5 text-primary" />
-            {storeName}
-          </span>
-          <ChevronDown className="size-5 text-muted-foreground group-hover:text-foreground" />
-        </button>
-        <button className="flex items-center gap-2 bg-card border border-border px-4 py-2 rounded-full text-sm font-medium hover:bg-surface-hover transition-colors text-foreground min-w-[140px] justify-between group">
-          <span className="flex items-center gap-2">
-            <Calendar className="size-5 text-primary" />
-            {weekLabel}
-          </span>
-          <ChevronDown className="size-5 text-muted-foreground group-hover:text-foreground" />
-        </button>
+        {/* Store Selector */}
+        <div className="relative">
+          <select
+            value={selectedStore}
+            onChange={(e) => onStoreChange(e.target.value)}
+            disabled={isLoading || stores.length === 0}
+            className="appearance-none flex items-center gap-2 bg-card border border-border pl-10 pr-8 py-2 rounded-full text-sm font-medium hover:bg-surface-hover transition-colors text-foreground min-w-[160px] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary/50"
+          >
+            {stores.map((store) => (
+              <option key={store} value={store} className="bg-card text-foreground">
+                {store.replace(/_/g, " ")}
+              </option>
+            ))}
+          </select>
+          <Store className="size-5 text-primary absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <ChevronDown className="size-5 text-muted-foreground absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+        </div>
+
+        {/* Year Selector */}
+        <div className="relative">
+          <select
+            value={selectedYear}
+            onChange={(e) => onYearChange(Number(e.target.value))}
+            disabled={isLoading || years.length === 0}
+            className="appearance-none flex items-center gap-2 bg-card border border-border pl-10 pr-8 py-2 rounded-full text-sm font-medium hover:bg-surface-hover transition-colors text-foreground min-w-[100px] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary/50"
+          >
+            {years.map((year) => (
+              <option key={year} value={year} className="bg-card text-foreground">
+                {year}
+              </option>
+            ))}
+          </select>
+          <Calendar className="size-5 text-primary absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <ChevronDown className="size-5 text-muted-foreground absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+        </div>
+
+        {/* Week Selector */}
+        <div className="relative">
+          <select
+            value={selectedWeek}
+            onChange={(e) => onWeekChange(Number(e.target.value))}
+            disabled={isLoading || weeks.length === 0}
+            className="appearance-none flex items-center gap-2 bg-card border border-border pl-4 pr-8 py-2 rounded-full text-sm font-medium hover:bg-surface-hover transition-colors text-foreground min-w-[90px] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary/50"
+          >
+            {weeks.map((week) => (
+              <option key={week} value={week} className="bg-card text-foreground">
+                Week {week}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="size-5 text-muted-foreground absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+        </div>
       </div>
 
       {/* Right Actions */}

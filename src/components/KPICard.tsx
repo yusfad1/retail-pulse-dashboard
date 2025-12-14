@@ -1,4 +1,5 @@
 import { TrendingUp, TrendingDown, DollarSign, ShoppingBag, Percent, Footprints } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type TrendDirection = "up" | "down";
 
@@ -9,6 +10,7 @@ interface KPICardProps {
   deltaLabel: string;
   trend: TrendDirection;
   icon: "sales" | "units" | "margin" | "traffic";
+  isUnusual?: boolean;
 }
 
 const iconMap = {
@@ -18,15 +20,27 @@ const iconMap = {
   traffic: Footprints,
 };
 
-const KPICard = ({ title, value, delta, deltaLabel, trend, icon }: KPICardProps) => {
+const KPICard = ({ title, value, delta, deltaLabel, trend, icon, isUnusual = false }: KPICardProps) => {
   const IconComponent = iconMap[icon];
   const TrendIcon = trend === "up" ? TrendingUp : TrendingDown;
   const trendColor = trend === "up" ? "text-primary" : "text-destructive";
 
   return (
-    <div className="flex flex-col gap-1 rounded-2xl p-5 border border-border bg-card hover:border-primary/50 transition-colors group cursor-default">
+    <div 
+      className={cn(
+        "flex flex-col gap-1 rounded-2xl p-5 border bg-card hover:border-primary/50 transition-colors group cursor-default",
+        isUnusual ? "border-primary/60 ring-1 ring-primary/20" : "border-border"
+      )}
+    >
       <div className="flex justify-between items-start">
-        <p className="text-muted-foreground text-sm font-medium">{title}</p>
+        <div className="flex items-center gap-2">
+          <p className="text-muted-foreground text-sm font-medium">{title}</p>
+          {isUnusual && (
+            <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+              UNUSUAL
+            </span>
+          )}
+        </div>
         <span className="text-primary bg-primary/10 p-1.5 rounded-lg">
           <IconComponent className="size-4" />
         </span>
