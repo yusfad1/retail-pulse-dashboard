@@ -1,6 +1,8 @@
 // API Client for Retail Pulse AI Backend
 // Base URL for the FastAPI backend
-const API_BASE_URL = "http://localhost:8000";
+// In development, Vite proxy handles /api requests, so we use relative paths
+// In production, you may need to set this to the actual backend URL
+const API_BASE_URL = import.meta.env.DEV ? "" : "http://127.0.0.1:8000";
 
 // Types based on API contract
 export interface MetadataResponse {
@@ -40,26 +42,54 @@ export interface InsightRequest {
  * Fetch metadata (stores, years, weeks) - called once on app load
  */
 export async function fetchMetadata(): Promise<MetadataResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/metadata`);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch metadata: ${response.statusText}`);
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/metadata`, {
+      method: "GET",
+      headers: {
+        "accept": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => response.statusText);
+      throw new Error(`Failed to fetch metadata: ${response.status} ${errorText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    if (error instanceof TypeError && error.message.includes("fetch")) {
+      throw new Error("Network error: Unable to connect to backend server. Please ensure it's running at http://127.0.0.1:8000");
+    }
+    throw error;
   }
-  return response.json();
 }
 
 /**
  * Fetch insight data for a specific store/year/week combination
  */
 export async function fetchInsight(request: InsightRequest): Promise<InsightResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/insight`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(request),
-  });
-  if (!response.ok) {
-    throw new Error(`Failed to fetch insight: ${response.statusText}`);
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/insight`, {
+      method: "POST",
+      headers: {
+        "accept": "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => response.statusText);
+      throw new Error(`Failed to fetch insight: ${response.status} ${errorText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    if (error instanceof TypeError && error.message.includes("fetch")) {
+      throw new Error("Network error: Unable to connect to backend server. Please ensure it's running at http://127.0.0.1:8000");
+    }
+    throw error;
   }
-  return response.json();
 }
