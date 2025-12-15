@@ -99,6 +99,10 @@ python -m venv .venv
 **Windows**
 ```
 .venv\Scripts\activate
+
+or
+
+.venv\Scripts\Activate.ps1
 ```
 
 **macOS / Linux**
