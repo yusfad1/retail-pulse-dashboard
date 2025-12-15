@@ -1,10 +1,10 @@
-from .analytics_service import compute_regional_performance, compute_sales_trajectory
-from .metadata_service import extract_metadata
 from fastapi import FastAPI, HTTPException, Query, status
-from .data_loader import load_data
-from .kpi_processing import derive_kpis, compute_signals
-from .schemas import InsightRequest, InsightResponse, KPIValue, MetadataResponse, RegionalPerformanceResponse, SalesTrajectoryResponse
-from .insight_service import generate_insight
+from data_loader import load_data
+from kpi_processing import derive_kpis, compute_signals
+from schemas import InsightRequest, InsightResponse, KPIValue, MetadataResponse, RegionalPerformanceResponse, SalesTrajectoryResponse
+from insight_service import generate_insight
+from metadata_service import extract_metadata
+from analytics_service import compute_regional_performance, compute_sales_trajectory
 
 app = FastAPI(title="Retail Pulse AI Backend")
 
