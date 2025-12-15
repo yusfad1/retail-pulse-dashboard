@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pandas
+numpy
+pydantic
+python-dotenv
+openai
+openpyxl
+sambanova
