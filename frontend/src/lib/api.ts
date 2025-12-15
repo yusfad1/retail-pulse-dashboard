@@ -38,6 +38,24 @@ export interface InsightRequest {
   week: number;
 }
 
+export interface RegionalPerformanceResponse {
+  store: string;
+  year: number;
+  week: number;
+  store_net_sales: number;
+  network_avg_net_sales: number;
+  gap_pct: number;
+  rank: number;
+  store_count: number;
+}
+
+export interface SalesTrajectoryResponse {
+  weeks: string[];
+  store_sales: number[];
+  network_avg_sales: number[];
+  is_partial: boolean;
+}
+
 /**
  * Fetch metadata (stores, years, weeks) - called once on app load
  */
@@ -89,6 +107,74 @@ export async function fetchInsight(request: InsightRequest): Promise<InsightResp
   } catch (error) {
     if (error instanceof TypeError && error.message.includes("fetch")) {
       throw new Error("Network error: Unable to connect to backend server. Please ensure it's running at http://127.0.0.1:8000");
+    }
+    throw error;
+  }
+}
+
+/**
+ * Fetch regional performance data
+ */
+export async function fetchRegionalPerformance(
+  store: string,
+  year: number,
+  week: number
+): Promise<RegionalPerformanceResponse> {
+  try {
+    const params = new URLSearchParams({
+      store,
+      year: year.toString(),
+      week: week.toString(),
+    });
+    const response = await fetch(`${API_BASE_URL}/api/regional-performance?${params}`, {
+      method: "GET",
+      headers: { accept: "application/json" },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => response.statusText);
+      throw new Error(`Failed to fetch regional performance: ${response.status} ${errorText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    if (error instanceof TypeError && error.message.includes("fetch")) {
+      throw new Error("Network error: Unable to connect to backend server.");
+    }
+    throw error;
+  }
+}
+
+/**
+ * Fetch sales trajectory data
+ */
+export async function fetchSalesTrajectory(
+  store: string,
+  year: number,
+  week: number,
+  window: number = 8
+): Promise<SalesTrajectoryResponse> {
+  try {
+    const params = new URLSearchParams({
+      store,
+      year: year.toString(),
+      week: week.toString(),
+      window: window.toString(),
+    });
+    const response = await fetch(`${API_BASE_URL}/api/sales-trajectory?${params}`, {
+      method: "GET",
+      headers: { accept: "application/json" },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => response.statusText);
+      throw new Error(`Failed to fetch sales trajectory: ${response.status} ${errorText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    if (error instanceof TypeError && error.message.includes("fetch")) {
+      throw new Error("Network error: Unable to connect to backend server.");
     }
     throw error;
   }

@@ -1,19 +1,42 @@
-// Mock data - replace with backend data later
-const barData = [
-  { day: "Mon", height: 30, isHighlighted: false },
-  { day: "Tue", height: 45, isHighlighted: false },
-  { day: "Wed", height: 50, isHighlighted: false },
-  { day: "Thu", height: 85, isHighlighted: true },
-  { day: "Fri", height: 60, isHighlighted: false },
-  { day: "Sat", height: 75, isHighlighted: false },
-  { day: "Sun", height: 90, isHighlighted: false },
-];
+import type { RegionalPerformanceResponse } from "@/lib/api";
 
 interface RegionalPerformanceCardProps {
-  percentVsRegion?: string;
+  data: RegionalPerformanceResponse | null;
+  isLoading?: boolean;
 }
 
-const RegionalPerformanceCard = ({ percentVsRegion = "+8%" }: RegionalPerformanceCardProps) => {
+const RegionalPerformanceCard = ({ data, isLoading }: RegionalPerformanceCardProps) => {
+  // Format gap percentage
+  const formatGapPct = (gap: number) => {
+    const sign = gap >= 0 ? "+" : "";
+    return `${sign}${(gap * 100).toFixed(0)}%`;
+  };
+
+  // Format currency
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
+  // Calculate bar heights based on actual data
+  const getBarData = () => {
+    if (!data) return [];
+    
+    const storeSales = data.store_net_sales;
+    const networkAvg = data.network_avg_net_sales;
+    const maxValue = Math.max(storeSales, networkAvg) * 1.2;
+    
+    return [
+      { label: "Network Avg", value: networkAvg, height: (networkAvg / maxValue) * 100, isStore: false },
+      { label: "Your Store", value: storeSales, height: (storeSales / maxValue) * 100, isStore: true },
+    ];
+  };
+
+  const barData = getBarData();
+
   return (
     <div className="flex flex-1 flex-col gap-4 rounded-2xl border border-border bg-card p-6">
       <div className="flex justify-between items-start">
@@ -21,30 +44,54 @@ const RegionalPerformanceCard = ({ percentVsRegion = "+8%" }: RegionalPerformanc
           <p className="text-muted-foreground text-sm font-medium uppercase tracking-wider">
             Regional Performance
           </p>
-          <p className="text-foreground text-2xl font-bold tracking-tight">
-            {percentVsRegion} <span className="text-lg font-normal text-muted-foreground">vs Region</span>
-          </p>
+          {isLoading ? (
+            <div className="h-8 w-32 bg-muted animate-pulse rounded" />
+          ) : data ? (
+            <p className="text-foreground text-2xl font-bold tracking-tight">
+              {formatGapPct(data.gap_pct)}{" "}
+              <span className="text-lg font-normal text-muted-foreground">vs Region</span>
+            </p>
+          ) : (
+            <p className="text-muted-foreground text-lg">No data</p>
+          )}
         </div>
-        <div className="flex items-center gap-1 bg-background px-3 py-1 rounded-full border border-border">
-          <span className="size-2 rounded-full bg-primary" />
-          <span className="text-xs font-medium text-foreground">This Week</span>
-        </div>
+        {data && !isLoading && (
+          <div className="flex items-center gap-1 bg-background px-3 py-1 rounded-full border border-border">
+            <span className="text-xs font-medium text-foreground">
+              Rank {data.rank} of {data.store_count}
+            </span>
+          </div>
+        )}
       </div>
 
-      <div className="grid flex-1 min-h-[220px] grid-flow-col gap-4 grid-rows-[1fr_auto] items-end justify-items-center mt-4">
-        {barData.map((bar, index) => (
-          <div key={index} className="group relative flex flex-col items-center justify-end w-full h-full gap-2">
-            <div 
-              className="bg-muted w-full rounded-t-sm group-hover:bg-primary/40 transition-all relative overflow-hidden"
-              style={{ height: `${bar.height}%` }}
-            >
-              <div className="absolute bottom-0 left-0 w-full h-1 bg-primary/50" />
-            </div>
-            <p className={`text-xs font-bold uppercase ${bar.isHighlighted ? 'text-foreground' : 'text-muted-foreground'}`}>
-              {bar.day}
-            </p>
+      <div className="flex flex-1 min-h-[220px] items-end justify-center gap-12 mt-4">
+        {isLoading ? (
+          <div className="flex gap-12 items-end">
+            <div className="w-20 h-32 bg-muted animate-pulse rounded-t-sm" />
+            <div className="w-20 h-48 bg-muted animate-pulse rounded-t-sm" />
           </div>
-        ))}
+        ) : (
+          barData.map((bar, index) => (
+            <div key={index} className="flex flex-col items-center gap-2">
+              <span className="text-xs font-medium text-muted-foreground">
+                {formatCurrency(bar.value)}
+              </span>
+              <div
+                className={`w-20 rounded-t-sm transition-all ${
+                  bar.isStore
+                    ? "bg-primary"
+                    : "bg-muted"
+                }`}
+                style={{ height: `${bar.height * 1.8}px` }}
+              />
+              <p className={`text-xs font-bold uppercase ${
+                bar.isStore ? "text-foreground" : "text-muted-foreground"
+              }`}>
+                {bar.label}
+              </p>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
