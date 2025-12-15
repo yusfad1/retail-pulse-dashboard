@@ -1,3 +1,4 @@
+from typing import Dict, List
 import pandas as pd
 
 
@@ -28,54 +29,52 @@ def compute_sales_trajectory(
     store: str,
     year: int,
     week: int,
-    window: int = 8,
-) -> dict:
+    window: int = 8
+) -> Dict[str, List]:
     """
-    Returns exactly `window` weeks of sales data.
-    If early in the year, backfills from previous year.
-    Missing store data is replaced by network average.
+    Compute the sales trajectory for a store over the last `window`
+    available weeks, rolling across year boundaries if needed.
+
+    - Uses only REAL available data
+    - Rolls back into previous years automatically
+    - Returns fewer points if history is limited
+    - Formats weeks as strings: "{year}-w{week}"
     """
 
-    trajectory_weeks = []
-    store_sales = []
+    # Ensure proper chronological ordering
+    df_sorted = df.sort_values(["Year", "Week"])
+
+    # Filter store history up to the selected (year, week)
+    store_history = df_sorted[
+        (df_sorted["Store Name"] == store)
+        & (
+            (df_sorted["Year"] < year)
+            | ((df_sorted["Year"] == year) & (df_sorted["Week"] <= week))
+        )
+    ]
+
+    # Take the last available weeks (may be < window)
+    recent_store = store_history.tail(window)
+
+    years = recent_store["Year"].astype(int).tolist()
+    weeks = recent_store["Week"].astype(int).tolist()
+    store_sales = recent_store["net_sales"].astype(float).tolist()
+
+    # Build formatted week labels
+    week_labels = [f"{y}-w{w}" for y, w in zip(years, weeks)]
+
+    # Compute network average for each (year, week)
     network_avg_sales = []
-
-    current_year = year
-    current_week = week
-
-    while len(trajectory_weeks) < window:
-        # Handle year rollover
-        if current_week <= 0:
-            current_year -= 1
-            current_week = 52
-
-        # Network average (always exists if data is present)
-        network_avg = df[
-            (df["Year"] == current_year) &
-            (df["Week"] == current_week)
+    for y, w in zip(years, weeks):
+        avg_sales = df_sorted[
+            (df_sorted["Year"] == y) & (df_sorted["Week"] == w)
         ]["net_sales"].mean()
 
-        # Store-specific value (may be missing)
-        store_row = df[
-            (df["Store Name"] == store) &
-            (df["Year"] == current_year) &
-            (df["Week"] == current_week)
-        ]
-
-        if not store_row.empty:
-            store_value = float(store_row.iloc[0]["net_sales"])
-        else:
-            # Fallback to network average
-            store_value = float(network_avg)
-
-        trajectory_weeks.insert(0, current_week)
-        store_sales.insert(0, store_value)
-        network_avg_sales.insert(0, float(network_avg))
-
-        current_week -= 1
+        network_avg_sales.append(float(avg_sales))
 
     return {
-        "weeks": trajectory_weeks,
+        "weeks": week_labels,
         "store_sales": store_sales,
         "network_avg_sales": network_avg_sales,
+        "is_partial": len(week_labels) < window
     }
