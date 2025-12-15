@@ -1,4 +1,5 @@
-import { ChevronDown, Settings, Bell, Store, Calendar } from "lucide-react";
+import { ChevronDown, Settings, Bell, Store, Calendar, Sun, Moon } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
 
 interface TopBarProps {
   stores: string[];
@@ -14,7 +15,25 @@ interface TopBarProps {
   userAvatarUrl?: string;
 }
 
-const TopBar = ({ 
+const ThemeToggle = () => {
+  const { theme, toggleTheme } = useTheme();
+  
+  return (
+    <button
+      onClick={toggleTheme}
+      className="flex size-10 items-center justify-center rounded-full bg-card text-foreground hover:bg-surface-hover transition-colors border border-transparent hover:border-border"
+      aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+    >
+      {theme === 'dark' ? (
+        <Sun className="size-5" />
+      ) : (
+        <Moon className="size-5" />
+      )}
+    </button>
+  );
+};
+
+const TopBar = ({
   stores,
   years,
   weeks,
@@ -108,7 +127,9 @@ const TopBar = ({
       </div>
 
       {/* Right Actions */}
-      <div className="flex items-center justify-end gap-4">
+      <div className="flex items-center justify-end gap-3">
+        {/* Theme Toggle */}
+        <ThemeToggle />
         <button className="flex size-10 items-center justify-center rounded-full bg-card text-foreground hover:bg-surface-hover transition-colors border border-transparent hover:border-border">
           <Settings className="size-5" />
         </button>
