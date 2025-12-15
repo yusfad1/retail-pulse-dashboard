@@ -4,7 +4,16 @@ import KPIGrid from "@/components/KPIGrid";
 import RegionalPerformanceCard from "@/components/RegionalPerformanceCard";
 import SalesTrajectoryCard from "@/components/SalesTrajectoryCard";
 import WeeklyAIInsightPanel from "@/components/WeeklyAIInsightPanel";
-import { fetchMetadata, fetchInsight, type MetadataResponse, type InsightResponse } from "@/lib/api";
+import {
+  fetchMetadata,
+  fetchInsight,
+  fetchRegionalPerformance,
+  fetchSalesTrajectory,
+  type MetadataResponse,
+  type InsightResponse,
+  type RegionalPerformanceResponse,
+  type SalesTrajectoryResponse,
+} from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
@@ -23,25 +32,53 @@ const Index = () => {
   const [insightData, setInsightData] = useState<InsightResponse | null>(null);
   const [insightLoading, setInsightLoading] = useState(false);
 
-  // Fetch insight data
-  const loadInsight = useCallback(async (store: string, year: number, week: number) => {
+  // Regional performance state
+  const [regionalData, setRegionalData] = useState<RegionalPerformanceResponse | null>(null);
+  const [regionalLoading, setRegionalLoading] = useState(false);
+
+  // Sales trajectory state
+  const [trajectoryData, setTrajectoryData] = useState<SalesTrajectoryResponse | null>(null);
+  const [trajectoryLoading, setTrajectoryLoading] = useState(false);
+
+  // Fetch all data for a given selection
+  const loadAllData = useCallback(async (store: string, year: number, week: number) => {
     if (!store || !year || !week) return;
 
     setInsightLoading(true);
-    try {
-      const data = await fetchInsight({ store, year, week });
-      setInsightData(data);
-    } catch (error) {
-      console.error("Failed to fetch insight:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load insight data. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setInsightLoading(false);
+    setRegionalLoading(true);
+    setTrajectoryLoading(true);
+
+    // Fetch all endpoints in parallel
+    const [insightResult, regionalResult, trajectoryResult] = await Promise.allSettled([
+      fetchInsight({ store, year, week }),
+      fetchRegionalPerformance(store, year, week),
+      fetchSalesTrajectory(store, year, week),
+    ]);
+
+    // Handle insight
+    if (insightResult.status === "fulfilled") {
+      setInsightData(insightResult.value);
+    } else {
+      console.error("Failed to fetch insight:", insightResult.reason);
     }
-  }, [toast]);
+    setInsightLoading(false);
+
+    // Handle regional
+    if (regionalResult.status === "fulfilled") {
+      setRegionalData(regionalResult.value);
+    } else {
+      console.error("Failed to fetch regional performance:", regionalResult.reason);
+    }
+    setRegionalLoading(false);
+
+    // Handle trajectory
+    if (trajectoryResult.status === "fulfilled") {
+      setTrajectoryData(trajectoryResult.value);
+    } else {
+      console.error("Failed to fetch sales trajectory:", trajectoryResult.reason);
+    }
+    setTrajectoryLoading(false);
+  }, []);
 
   // Initial metadata load
   useEffect(() => {
@@ -49,19 +86,16 @@ const Index = () => {
       try {
         const data = await fetchMetadata();
 
-        // Validate response data
         if (!data || !Array.isArray(data.stores) || !Array.isArray(data.years) || !Array.isArray(data.weeks)) {
           throw new Error("Invalid metadata response format");
         }
 
-        // Check if we have any data
         if (data.stores.length === 0 || data.years.length === 0 || data.weeks.length === 0) {
           throw new Error("No data available in metadata");
         }
 
         setMetadata(data);
 
-        // Set sensible defaults: first store, first year, first week
         const defaultStore = data.stores[0] ?? "";
         const defaultYear = data.years[0] ?? 0;
         const defaultWeek = data.weeks[0] ?? 0;
@@ -74,8 +108,7 @@ const Index = () => {
         setSelectedYear(defaultYear);
         setSelectedWeek(defaultWeek);
 
-        // Auto-load initial insight
-        await loadInsight(defaultStore, defaultYear, defaultWeek);
+        await loadAllData(defaultStore, defaultYear, defaultWeek);
       } catch (error) {
         console.error("Failed to fetch metadata:", error);
         const errorMessage = error instanceof Error
@@ -92,30 +125,32 @@ const Index = () => {
     };
 
     loadMetadata();
-  }, [loadInsight, toast]);
+  }, [loadAllData, toast]);
 
   // Handle store change
   const handleStoreChange = useCallback((store: string) => {
     setSelectedStore(store);
-    loadInsight(store, selectedYear, selectedWeek);
-  }, [selectedYear, selectedWeek, loadInsight]);
+    loadAllData(store, selectedYear, selectedWeek);
+  }, [selectedYear, selectedWeek, loadAllData]);
 
   // Handle year change
   const handleYearChange = useCallback((year: number) => {
     setSelectedYear(year);
-    loadInsight(selectedStore, year, selectedWeek);
-  }, [selectedStore, selectedWeek, loadInsight]);
+    loadAllData(selectedStore, year, selectedWeek);
+  }, [selectedStore, selectedWeek, loadAllData]);
 
   // Handle week change
   const handleWeekChange = useCallback((week: number) => {
     setSelectedWeek(week);
-    loadInsight(selectedStore, selectedYear, week);
-  }, [selectedStore, selectedYear, loadInsight]);
+    loadAllData(selectedStore, selectedYear, week);
+  }, [selectedStore, selectedYear, loadAllData]);
 
   // Handle generate new insight
   const handleGenerateNewInsight = useCallback(() => {
-    loadInsight(selectedStore, selectedYear, selectedWeek);
-  }, [selectedStore, selectedYear, selectedWeek, loadInsight]);
+    loadAllData(selectedStore, selectedYear, selectedWeek);
+  }, [selectedStore, selectedYear, selectedWeek, loadAllData]);
+
+  const isLoading = metadataLoading || insightLoading;
 
   return (
     <div className="relative flex min-h-screen w-full flex-col bg-background">
@@ -129,18 +164,24 @@ const Index = () => {
         onStoreChange={handleStoreChange}
         onYearChange={handleYearChange}
         onWeekChange={handleWeekChange}
-        isLoading={metadataLoading || insightLoading}
+        isLoading={isLoading}
       />
 
       <main className="flex-1 px-6 py-6 overflow-hidden max-w-[1600px] mx-auto w-full">
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 h-full">
           {/* Left Column - KPIs and Charts */}
           <div className="xl:col-span-8 flex flex-col gap-6">
-            <KPIGrid insightData={insightData} isLoading={insightLoading || metadataLoading} />
+            <KPIGrid insightData={insightData} isLoading={isLoading} />
 
             <div className="flex flex-col lg:flex-row gap-6">
-              <RegionalPerformanceCard />
-              <SalesTrajectoryCard />
+              <RegionalPerformanceCard
+                data={regionalData}
+                isLoading={regionalLoading || metadataLoading}
+              />
+              <SalesTrajectoryCard
+                data={trajectoryData}
+                isLoading={trajectoryLoading || metadataLoading}
+              />
             </div>
           </div>
 
