@@ -37,6 +37,7 @@ class RegionalPerformanceResponse(BaseModel):
 
 
 class SalesTrajectoryResponse(BaseModel):
-    weeks: List[int]
+    weeks: List[str]
     store_sales: List[float]
     network_avg_sales: List[float]
+    is_partial: bool
