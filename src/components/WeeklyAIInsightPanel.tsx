@@ -39,7 +39,7 @@ const WeeklyAIInsightPanel = ({
             <div className="h-2 bg-muted rounded-full w-4/5 animate-pulse" style={{ animationDelay: "300ms" }} />
           </div>
         ) : aiSummary ? (
-          <div className="text-gray-200 text-sm leading-relaxed font-body whitespace-pre-line">
+          <div className="text-gray-200 dark:text-gray-200 text-black text-base sm:text-lg leading-relaxed font-body whitespace-pre-line">
             {aiSummary}
           </div>
         ) : (
