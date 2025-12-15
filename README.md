@@ -1,73 +1,223 @@
-# Welcome to your Lovable project
 
-## Project info
+# 🏬 Retail Pulse AI — Store Performance Insights
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Retail Pulse AI is a prototype dashboard that delivers **weekly, explainable performance insights** for retail store managers.
+It combines **deterministic analytics** with **LLM-generated explanations**, while explicitly preventing **client-confidential data leakage**.
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## ✨ Key Features
 
-**Use Lovable**
+- 📊 Weekly store KPIs and sales drivers
+- 🧠 AI-generated executive insight (3–5 lines)
+- 🏪 Store vs network (regional) performance comparison (Not syncronized yet)
+- 📈 8-week sales trajectory with year-boundary handling (Not syncronized yet)
+- 🔒 Privacy-safe LLM usage (no raw data sent) 
+- 🌗 Light / Dark mode toggle
+- ⚡ FastAPI backend + React frontend
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🧱 Project Structure
 
-**Use your preferred IDE**
+Retail-Pulse-AI/
+├── backend/
+│   ├── main.py
+│   ├── data_loader.py
+│   ├── analytics_service.py
+│   ├── kpi_processing.py
+│   ├── llm_service.py
+│   ├── schemas.py
+│   ├── requirements.txt
+│   ├── .env
+│   └── data/
+│       └── practical-test-dataset-weekly-kpi.xlsx   # REQUIRED: place the data file here
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── api.ts
+│   │   ├── App.tsx
+│   │   └── main.tsx
+│   ├── index.html
+│   ├── package.json
+│   └── vite.config.ts
+│   └── more ....
+│
+├── docs/
+│   └── screenshots/
+│       ├── dashboard-light.png
+│       ├── dashboard-dark.png
+│       └── ai-insight.png
+│
+└── README.md
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-Follow these steps:
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+---
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## 📂 Data Setup (IMPORTANT)
 
-# Step 3: Install the necessary dependencies.
+The backend expects the dataset to be placed in the following folder:
+
+```
+backend/data/
+```
+
+The file must be named: `practical-test-dataset-weekly-kpi.xlsx`
+
+
+The Excel file must contain at least the following columns:
+
+- Store Name
+- Year
+- Week
+- traffic
+- gross_transactions
+- gross_quantity
+- net_sales
+
+⚠️ If the file is missing or placed elsewhere, the backend will fail at startup.
+
+---
+
+## 🔧 Backend — Setup & Run
+
+### Prerequisites
+- Python 3.10+
+- pip
+
+### Create and activate virtual environment
+
+```
+cd backend
+python -m venv .venv
+```
+
+
+**Windows**
+```
+.venv\Scripts\activate
+```
+
+**macOS / Linux**
+```
+source .venv/bin/activate
+```
+
+
+### Install dependencies
+
+```
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+
+### Environment variables
+
+Create `backend/.env`:
+
+```
+OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxx
+SABANOVA_API_KEY=xxxxxxxxxxxxxxxxxxx
+MODEL_NAME=xxxxxxxxxxxxxxxxxx
+```
+
+add OPENAI_API_KEY/SABANOVA_API_KEY api key and MODEL_NAME
+
+
+> Never commit this file.
+
+### Run backend
+
+```
+uvicorn main:app --reload
+```
+
+Backend:
+```
+http://127.0.0.1:8000/
+```
+
+
+Swagger:
+```
+http://127.0.0.1:8000/docs
+```
+
+
+---
+
+## 🎨 Frontend — Setup & Run
+
+### Prerequisites
+- Node.js 18+
+- npm
+
+### Install dependencies
+
+```
+cd frontend
 npm i
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+
+### Run frontend
+
+```
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Frontend:
+```
+http://localhost:8080/
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
 
-**Use GitHub Codespaces**
+---
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🔁 Application Flow
 
-## What technologies are used for this project?
+1. Frontend loads → `/api/metadata`
+2. User selects store / year / week
+3. Frontend calls:
+   - `/api/insight`
+   - `/api/regional-performance`
+   - `/api/sales-trajectory`
+4. KPIs, charts, and AI insight update
 
-This project is built with:
+---
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 🔒 AI & Privacy Design
 
-## How can I deploy this project?
+- No raw sales values sent to the LLM
+- No store identifiers sent
+- No ranks or exact percentages sent
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+The LLM only receives:
+- Relative performance buckets
+- Directional trends
+- Boolean anomaly flags
 
-## Can I connect a custom domain to my Lovable project?
+The LLM is used strictly as an **explanation layer**.
 
-Yes, you can!
+---
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 📸 Screenshots
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Screenshots added under `docs/screenshots/`:
+
+Dashboard Light Mode:
+
+![Dashboard Light Mode](docs/screenshots/dashboard-light.png)
+
+Dashboard Dark Mode:
+
+![Dashboard Dark Mode](docs/screenshots/dashboard-dark.png)
+
+Unusual KPI flaged (example: unusual traffic):
+
+![Unusual KPI flaged](docs/screenshots/unusual-traffic.png)
+
