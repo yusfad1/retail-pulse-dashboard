@@ -10,8 +10,8 @@ It combines **deterministic analytics** with **LLM-generated explanations**, whi
 
 - 📊 Weekly store KPIs and sales drivers
 - 🧠 AI-generated executive insight (3–5 lines)
-- 🏪 Store vs network (regional) performance comparison (Not syncronized yet)
-- 📈 8-week sales trajectory with year-boundary handling (Not syncronized yet)
+- 🏪 Store vs network (regional) performance comparison (Ready)
+- 📈 8-week sales trajectory with year-boundary handling (Ready)
 - 🔒 Privacy-safe LLM usage (no raw data sent) 
 - 🌗 Light / Dark mode toggle
 - ⚡ FastAPI backend + React frontend
