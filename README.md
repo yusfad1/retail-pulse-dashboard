@@ -221,7 +221,7 @@ Dashboard Dark Mode:
 
 ![Dashboard Dark Mode](docs/screenshots/dashboard-dark.png)
 
-Unusual KPI flaged (example: unusual traffic):
+Unusual KPI flaged (example: unusual sales):
 
 ![Unusual KPI flaged](docs/screenshots/unusual-traffic.png)
 
